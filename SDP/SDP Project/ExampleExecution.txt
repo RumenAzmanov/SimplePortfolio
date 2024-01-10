@@ -1,0 +1,7 @@
+CREATETABLE mytable (FN:INT INDEX, FirstName:STRING, LastName:STRING, DateOfBirth:DATE)
+INSERT mytable ((100, "Ivan", "Ivanov", 01/02/2022), (200, "Petur", "Petrov", 01/02/2022), (300, "Georgi", "Georgiev", 01/04/2022), (400, "Atanas", "Atanasov", 01/04/2022), (500, "Vasil", "Vasilev", 01/06/2022))
+SELECT * FROM mytable
+SELECT * FROM mytable WHERE FN > 200
+SELECT DISTINCT DateOfBirth FROM mytable
+CLOSE mytable
+QUIT

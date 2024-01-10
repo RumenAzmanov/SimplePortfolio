@@ -1,0 +1,62 @@
+AVLTree
+Test, Time in nanoseconds
+Input 300 unique sorted integer values, 76300
+Input 300 unique reverse sorted integer values, 54700
+Input 300 unique integer values, 68900
+Input 300 integer values, 73500
+Input 300 repeating integer values, 63600
+Find 300 random integer values, 8000
+Find 300 random existing integer values, 6800
+Find 300 random non-existing integer values, 7300
+Erase 300 random integer values, 52900
+Erase 300 random existing integer values, 60700
+Erase 300 random non-existing integer values, 38300
+Clear structure with 300 random values, 22000
+Copy structure with 300 random values, 49100
+Input 30000 unique sorted integer values, 21363200
+Input 30000 unique reverse sorted integer values, 9711100
+Input 30000 unique integer values, 15874200
+Input 30000 integer values, 10888400
+Input 30000 repeating integer values, 14518700
+Find 30000 random integer values, 2295700
+Find 30000 random existing integer values, 1653900
+Find 30000 random non-existing integer values, 3006700
+Erase 30000 random integer values, 53460700
+Erase 30000 random existing integer values, 19330000
+Erase 30000 random non-existing integer values, 45053500
+Clear structure with 30000 random values, 7542900
+Copy structure with 30000 random values, 9620700
+Test, Memory in bytes
+Memory for 300 random integer values, 7216
+Memory for 30000 random integer values, 720016
+SkipList
+Test, Time in nanoseconds
+Input 300 unique sorted integer values, 216400
+Input 300 unique reverse sorted integer values, 164500
+Input 300 unique integer values, 194200
+Input 300 integer values, 192300
+Input 300 repeating integer values, 185900
+Find 300 random integer values, 27800
+Find 300 random existing integer values, 31100
+Find 300 random non-existing integer values, 31500
+Erase 300 random integer values, 172000
+Erase 300 random existing integer values, 193200
+Erase 300 random non-existing integer values, 146300
+Clear structure with 300 random values, 32300
+Copy structure with 300 random values, 866000
+Input 30000 unique sorted integer values, 19206400
+Input 30000 unique reverse sorted integer values, 18338100
+Input 30000 unique integer values, 28563600
+Input 30000 integer values, 33854800
+Input 30000 repeating integer values, 13017100
+Find 30000 random integer values, 13718100
+Find 30000 random existing integer values, 26096900
+Find 30000 random non-existing integer values, 21152300
+Erase 30000 random integer values, 25694100
+Erase 30000 random existing integer values, 36280700
+Erase 30000 random non-existing integer values, 28349300
+Clear structure with 30000 random values, 4198000
+Copy structure with 30000 random values, 21861700
+Test, Memory in bytes
+Memory for 300 random integer values, 9848
+Memory for 30000 random integer values, 962496

@@ -1,0 +1,254 @@
+/// Big Four -----------------------------------------------
+
+template <class T>
+SkipList<T>::SkipList(const int maxLevelInput,
+                      const int levelProbabilityInput)
+    : head(nullptr),
+      maxLevel(maxLevelInput),
+      levelProbability(levelProbabilityInput),
+      listLength(0) {
+    try {
+        head = new Node(0, maxLevelInput);
+        countSizes = new int[maxLevelInput + 1];
+    } catch (const std::exception& exc) {
+        delete head;
+        delete countSizes;
+        head = nullptr;
+        countSizes = nullptr;
+        throw exc;
+    }
+    for (int i = 0; i <= maxLevelInput; ++i)
+        countSizes[i] = 0;
+    srand(time(0));
+}
+
+template <class T>
+SkipList<T>::SkipList(const SkipList& otherList)
+    : maxLevel(otherList.maxLevel),
+      levelProbability(otherList.levelProbability),
+      listLength(0) {
+    srand(time(0));
+    try {
+        head = new Node(0, otherList.maxLevel);
+        countSizes = new int[otherList.maxLevel + 1];
+    } catch (const std::exception& exc) {
+        delete head;
+        delete countSizes;
+        head = nullptr;
+        countSizes = nullptr;
+        throw exc;
+    }
+    for (int i = 0; i <= otherList.maxLevel; ++i)
+        countSizes[i] = 0;
+    copy(otherList.head->nextNodes[0]);
+}
+
+template <class T>
+SkipList<T>& SkipList<T>::operator=(const SkipList<T>& otherList) {
+    if (&otherList != this) {
+        clear(this->head);
+        this->maxLevel = otherList.maxLevel;
+        this->levelProbability = otherList.levelProbability;
+        listLength = 0;
+        try {
+            head = new Node(0, otherList.maxLevel);
+            countSizes = new int[otherList.maxLevel + 1];
+        } catch (const std::exception& exc) {
+            delete head;
+            delete countSizes;
+            head = nullptr;
+            countSizes = nullptr;
+            throw exc;
+        }
+        for (int i = 0; i <= otherList.maxLevel; ++i)
+            countSizes[i] = 0;
+        copy(otherList.head->nextNodes[0]);
+    }
+    return *this;
+}
+
+template <class T>
+SkipList<T>::~SkipList() {
+    clear(head);
+}
+
+/// Public methods -----------------------------------------
+
+template <class T>
+void SkipList<T>::insert(const T value) {
+    int randomLevel = generateRandomLevel();
+    Node* newNode = nullptr;
+    try {
+        newNode = new Node(value, randomLevel);
+    } catch (const std::exception& exc) {
+        delete newNode;
+        newNode = nullptr;
+        throw exc;
+    }
+    Node* currentNode = head;
+    int stackLevel = maxLevel;
+
+    while (true) {
+        if (currentNode->nextNodes[stackLevel] == nullptr || currentNode->nextNodes[stackLevel]->value > value) {
+            if (stackLevel <= randomLevel) {  // Update pointers while searching
+                newNode->nextNodes[stackLevel] = currentNode->nextNodes[stackLevel];
+                currentNode->nextNodes[stackLevel] = newNode;
+            }
+            --stackLevel;
+            if (stackLevel < 0) break;
+            continue;
+        }
+        currentNode = currentNode->nextNodes[stackLevel];
+    }
+
+    ++listLength;
+    ++countSizes[randomLevel];
+}
+
+template <class T>
+bool SkipList<T>::find(const T value) const {
+    Node* search = head;
+
+    for (int i = maxLevel; i >= 0; --i) {  // Iterative searching
+        while (search->nextNodes[i] != nullptr && search->nextNodes[i]->value < value) {
+            search = search->nextNodes[i];
+        }
+    }
+    search = search->nextNodes[0];
+
+    if (search != nullptr && search->value == value) return true;
+    return false;
+}
+
+template <class T>
+bool SkipList<T>::erase(T value) {
+    Node* search = head;
+    int level = maxLevel;
+    Node** listPath = nullptr;
+    try {
+        listPath = new Node*[maxLevel + 1];  // Keep memory of all nodes to change
+    } catch (const std::exception& exc) {
+        delete listPath;
+        listPath = nullptr;
+        throw exc;
+    }
+
+    for (int i = maxLevel; i >= 0; --i) {
+        while (search->nextNodes[i] != nullptr && search->nextNodes[i]->value < value) {
+            search = search->nextNodes[i];
+        }
+        listPath[i] = search;
+    }
+    search = search->nextNodes[0];
+
+    if (search && search->value == value) {
+        for (int i = 0; i <= maxLevel; ++i) {
+            if (listPath[i]->nextNodes[i] == search) {  // Change the nodes
+                listPath[i]->nextNodes[i] = search->nextNodes[i];
+            }
+        }
+        --countSizes[search->level];
+        delete search;
+        search = nullptr;
+        delete[] listPath;
+        listPath = nullptr;
+        --listLength;
+        return true;
+    }
+    delete[] listPath;
+    listPath = nullptr;
+    return false;
+}
+
+template <class T>
+void SkipList<T>::clear() {
+    clear(head);
+    listLength = 0;
+}
+
+template <class T>
+long long int SkipList<T>::getListLength() const {
+    return listLength;
+}
+
+template <class T>
+bool SkipList<T>::empty() const {
+    return listLength == 0;
+}
+
+template <class T>
+void SkipList<T>::printInorder(std::ostream& out) const {
+    Node* node = head;
+    Node* nextNode;
+    do {
+        nextNode = node->nextNodes[0];
+        out << node->value << ' ';
+        node = nextNode;
+    } while (node);
+    out << '\n';
+}
+
+template <class T>
+void SkipList<T>::printStructure(std::ostream& out) const {
+    Node* node = head;
+    Node* nextNode;
+    do {
+        nextNode = node->nextNodes[0];
+        out << node->value << " ~ " << node->level << '\n';
+        for (int i = 0; i < node->level + 1; ++i) {
+            if (node->nextNodes[i]) {
+                out << ' ' << i << " -> " << node->nextNodes[i]->value << '\n';
+            } else {
+                out << ' ' << i << " -> NUL\n";
+            }
+        }
+        node = nextNode;
+    } while (node);
+}
+
+template <class T>
+long long int SkipList<T>::checkMemory() const {
+    long long int memory = 0;
+    memory += sizeof(head) + sizeof(maxLevel) + sizeof(levelProbability) + sizeof(listLength) + sizeof(countSizes);
+    memory += sizeof(struct Node) + (maxLevel + 1) * sizeof(struct Node*);     // First node
+    memory += getListLength() * (sizeof(struct Node) + sizeof(struct Node*));  // All nodes
+    for (int i = 1; i <= maxLevel; ++i) {
+        memory += countSizes[i] * i * sizeof(struct Node*);  // Additional pointers
+    }
+    return memory;
+}
+
+/// Private methods ----------------------------------------
+
+template <class T>
+void SkipList<T>::clear(Node*& node) {
+    if (node) {
+        Node* nextNode;
+        do {
+            nextNode = node->nextNodes[0];
+            if (nextNode == nullptr) return;
+            delete node;
+            node = nextNode;
+        } while (node);  // Clear with iteration
+    }
+    node = nullptr;
+    delete[] countSizes;
+    countSizes = nullptr;
+}
+
+template <class T>
+void SkipList<T>::copy(Node* copyNode) {
+    if (!copyNode) return;
+    insert(copyNode->value);  // Copy only the elements
+    if (copyNode->nextNodes[0]) copy(copyNode->nextNodes[0]);
+}
+
+template <class T>
+int SkipList<T>::generateRandomLevel() const {
+    int level = 0;
+    while ((level < maxLevel) &&
+           ((rand() % 100) + 1 <= 100 / levelProbability)) {  // Probability using integers
+        ++level;
+    }
+    return level;
+}

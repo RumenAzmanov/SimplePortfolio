@@ -1,0 +1,301 @@
+/// Big Four -----------------------------------------------
+
+template <class T>
+AVLTree<T>::AVLTree() : root(nullptr), treeWeight(0) {}
+
+template <class T>
+AVLTree<T>::AVLTree(const AVLTree& otherTree)
+    : root(copy(otherTree.root)),
+      treeWeight(otherTree.treeWeight) {
+}
+
+template <class T>
+AVLTree<T>& AVLTree<T>::operator=(const AVLTree<T>& otherTree) {
+    if (&otherTree != this) {
+        clear(this->root);
+        this->root = copy(otherTree.root);
+        this->treeWeight = otherTree.treeWeight;
+    }
+    return *this;
+}
+
+template <class T>
+AVLTree<T>::~AVLTree() { clear(); }
+
+/// Public methods -----------------------------------------
+
+template <class T>
+void AVLTree<T>::insert(const T value) {
+    insert(root, value);
+    ++treeWeight;
+}
+
+template <class T>
+bool AVLTree<T>::find(const T key) const {
+    return find(root, key);
+}
+
+template <class T>
+bool AVLTree<T>::erase(T value) {
+    if (erase(root, value)) {
+        --treeWeight;
+        return true;
+    }
+    return false;
+}
+
+template <class T>
+void AVLTree<T>::clear() {
+    clear(root);
+    treeWeight = 0;
+}
+
+template <class T>
+long long int AVLTree<T>::getTreeWeight() const {
+    return treeWeight;
+}
+
+template <class T>
+long long int AVLTree<T>::getTreeHeight() const {
+    return root ? root->height : 0;
+}
+
+template <class T>
+bool AVLTree<T>::empty() const {
+    return treeWeight == 0;
+}
+
+template <class T>
+void AVLTree<T>::printInorder(std::ostream& out) const {
+    printInorder(root, out);
+    out << '\n';
+}
+
+template <class T>
+void AVLTree<T>::printStructure(std::ostream& out) const {
+    printStructure(root, out);
+    out << '\n';
+}
+
+template <class T>
+long long int AVLTree<T>::checkMemory() const {
+    long long int memory = 0;
+    memory += sizeof(root) + sizeof(treeWeight);  // The memory for the main structure
+    memory += getTreeWeight() * sizeof(struct Node);
+    return memory;
+}
+
+/// Private methods ----------------------------------------
+
+template <class T>
+void AVLTree<T>::clear(Node*& node) {
+    if (node) {
+        clear(node->left);
+        clear(node->right);
+        delete node;
+        node = nullptr;
+    }
+}
+
+template <class T>
+typename AVLTree<T>::Node* AVLTree<T>::copy(Node* copyNode) {
+    return copyNode ? new Node(copyNode->value, copy(copyNode->left), copy(copyNode->right), copyNode->height) : nullptr;
+}
+
+template <class T>
+int AVLTree<T>::getNodeHeight(const Node* node) const {
+    return node ? node->height : 0;
+}
+
+template <class T>
+int AVLTree<T>::calculateHeight(const Node* node) const {
+    return 1 + (getNodeHeight(node->left) > getNodeHeight(node->right) ? getNodeHeight(node->left) : getNodeHeight(node->right));
+}
+
+template <class T>
+int AVLTree<T>::calculateBalanceFactor(const Node* node) const {
+    return node ? (getNodeHeight(node->right) - getNodeHeight(node->left)) : 0;
+}
+
+template <class T>
+bool AVLTree<T>::find(const Node* node, const T value) const {
+    if (!node) return false;
+    if (node->value == value) return true;
+    return value < node->value ? find(node->left, value) : find(node->right, value);
+}
+
+template <class T>
+void AVLTree<T>::rotateRight(Node*& node) {
+    Node* leftSubtree = node->left;
+    node->left = leftSubtree->right;
+    leftSubtree->right = node;
+
+    node->height = calculateHeight(node);
+    leftSubtree->height = calculateHeight(leftSubtree);
+
+    node = leftSubtree;
+}
+
+template <class T>
+void AVLTree<T>::rotateLeft(Node*& node) {
+    Node* rightSubtree = node->right;
+    node->right = rightSubtree->left;
+    rightSubtree->left = node;
+
+    node->height = calculateHeight(node);
+    rightSubtree->height = calculateHeight(rightSubtree);
+
+    node = rightSubtree;
+}
+
+template <class T>
+void AVLTree<T>::updateNode(Node*& node) {
+    if (!node) return;
+
+    node->height = calculateHeight(node);
+    int balance = calculateBalanceFactor(node);
+    if (balance < -1) {
+        if (node->left) {
+            if (calculateBalanceFactor(node->left) > 0) {
+                rotateLeft(node->left);
+            }
+            rotateRight(node);
+        }
+    } else if (balance > 1) {
+        if (node->right) {
+            if (calculateBalanceFactor(node->right) < 0) {
+                rotateRight(node->right);
+            }
+            rotateLeft(node);
+        }
+    }
+}
+
+template <class T>
+void AVLTree<T>::insert(Node*& node, T value) {
+    if (!node) {  // Create a new leaf
+        try {
+            node = new Node(value);
+        } catch (const std::exception& exc) {
+            delete node;
+            node = nullptr;
+            throw exc;
+        }
+    } else {
+        if (node->value > value) {  // Select a subtree
+            insert(node->left, value);
+        } else {
+            insert(node->right, value);
+        }
+
+        node->height = calculateHeight(node);
+        int balanceFactor = calculateBalanceFactor(node);
+
+        if (balanceFactor < -1) {
+            if (node->left->value <= value) {
+                rotateLeft(node->left);
+            }
+            rotateRight(node);
+        } else if (balanceFactor > 1) {
+            if (node->right->value > value) {
+                rotateRight(node->right);
+            }
+            rotateLeft(node);
+        }
+    }
+}
+
+template <class T>
+typename AVLTree<T>::Node* AVLTree<T>::getMinNode(Node*& node) {
+    if (node->left) return getMinNode(node->left);
+    return node;
+}
+
+template <class T>
+void AVLTree<T>::eraseMinNode(Node*& node) {
+    if (node->left) {
+        eraseMinNode(node->left);  // Select the node on the left
+    } else {
+        if (node->right)
+            node = node->right;
+        else
+            node = nullptr;
+    }
+
+    if (!node) return;
+    updateNode(node);  // Update all nodes recursively
+}
+
+template <class T>
+bool AVLTree<T>::erase(Node*& node, T value) {
+    if (!node) return false;
+    bool answer = true;
+
+    if (node->value == value) {
+        Node* nodeToDelete = node;
+        if (!node->left && !node->right)  // No child nodes
+            node = nullptr;
+        else if (!node->left && node->right)  // Only right child
+            node = node->right;
+        else if (node->left && !node->right)  // Only left child
+            node = node->left;
+        else if (node->left && node->right) {                  // Two children
+            Node* minNodeFromRight = getMinNode(node->right);  // Move the node
+            eraseMinNode(node->right);
+            minNodeFromRight->left = node->left;
+            minNodeFromRight->right = node->right;
+            node = minNodeFromRight;
+        }
+        delete nodeToDelete;
+        nodeToDelete = nullptr;
+    } else {
+        if (node->value > value)  // Erase recursively
+            answer = erase(node->left, value);
+        else
+            answer = erase(node->right, value);
+    }
+
+    if (!node) return true;
+    updateNode(node);  // Update recursively
+
+    return answer;
+}
+
+template <class T>
+void AVLTree<T>::printInorder(const Node* node, std::ostream& out) const {
+    if (node) {
+        printInorder(node->left, out);
+        out << node->value << ' ';
+        printInorder(node->right, out);
+    }
+}
+
+template <class T>
+void AVLTree<T>::printStructure(const Node* node, std::ostream& out) const {
+    if (!node) return;
+    std::queue<const Node*> printQueue;  // Print by levels
+    printQueue.push(node);
+    printQueue.push(nullptr);
+    out << '(' << node->value << ')' << '\n';
+    while (true) {
+        if (printQueue.front()) {
+            out << '(';
+            if (printQueue.front()->left) {
+                printQueue.push(printQueue.front()->left);
+                out << printQueue.front()->left->value;
+            }
+            out << ',';
+            if (printQueue.front()->right) {
+                printQueue.push(printQueue.front()->right);
+                out << printQueue.front()->right->value;
+            }
+            out << ')';
+            printQueue.pop();
+        } else {
+            printQueue.pop();
+            if (printQueue.empty()) break;
+            printQueue.push(nullptr);
+            out << '\n';
+        }
+    }
+}
